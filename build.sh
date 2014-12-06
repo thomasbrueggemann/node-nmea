@@ -1,0 +1,1 @@
+browserify index.js -o build/nmea-0183.js

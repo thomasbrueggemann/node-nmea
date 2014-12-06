@@ -1,2 +1,2 @@
-module.exports = require('./lib/NMEA.js');
+module.exports = window.nmea = require('./lib/NMEA.js');
 
