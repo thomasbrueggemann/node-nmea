@@ -362,6 +362,7 @@ var MWV = require("./codes/MWV.js");
 var DBT = require("./codes/DBT.js");
 var HDG = require("./codes/HDG.js");
 var VHW = require("./codes/VHW.js");
+var RPM = require("./codes/RPM.js");
 var Helper = require("./Helper.js");
 
 /** NMEA module */
@@ -537,6 +538,7 @@ var NMEA = ( function() {
     nmea.addParser(new GLL.Decoder("GPGLL"));
     nmea.addParser(new HDG.Decoder("HCHDG"));
     nmea.addParser(new VHW.Decoder("VWVHW"));
+    nmea.addParser(new RPM.Decoder("ERRPM"));
     // add the standard encoders
     nmea.addEncoder(new GGA.Encoder("GPGGA"));
     nmea.addEncoder(new RMC.Encoder("GPRMC"));
@@ -547,7 +549,7 @@ var NMEA = ( function() {
 
 module.exports = NMEA;
 
-},{"./Helper.js":2,"./codes/DBT.js":4,"./codes/GGA.js":5,"./codes/GLL.js":6,"./codes/GSA.js":7,"./codes/GSV.js":8,"./codes/HDG.js":9,"./codes/MWV.js":10,"./codes/RMC.js":11,"./codes/VHW.js":12,"./codes/VTG.js":13}],4:[function(require,module,exports){
+},{"./Helper.js":2,"./codes/DBT.js":4,"./codes/GGA.js":5,"./codes/GLL.js":6,"./codes/GSA.js":7,"./codes/GSV.js":8,"./codes/HDG.js":9,"./codes/MWV.js":10,"./codes/RMC.js":11,"./codes/RPM.js":12,"./codes/VHW.js":13,"./codes/VTG.js":14}],4:[function(require,module,exports){
 var Helper = require("../Helper.js");
 
 /*
@@ -1042,6 +1044,69 @@ exports.Decoder = function(id) {
     };
 };
 },{"../Helper.js":2}],12:[function(require,module,exports){
+var Helper = require("../Helper.js");
+
+/*
+ -----------------------------------------------------------------------------
+        1 2 3   4   5 6
+        | | |   |   | |
+ $--RPM,a,x,x.x,x.x,A*hh<CR><LF>
+ -----------------------------------------------------------------------------
+
+ Field Number:
+
+ 1. Sourse, S = Shaft, E = Engine
+ 2. Engine or shaft number
+ 3. Speed, Revolutions per minute
+ 4. Propeller pitch, % of maximum, "-" means astern
+ 5. Status, A means data is valid
+ 6. Checksum
+*/
+
+exports.Decoder = function (id) {
+    this.id = id;
+    this.talker_type_id = "RPM";
+    this.talker_type_desc = "Revolutions per minute";
+    this._source = function(char){
+          switch(char){
+            case "S" : return "shaft"
+            case "E" : return "engine"
+        }
+    };
+    this._status = function(char){
+        switch(char){
+            case "A" : return "data valid"
+            case "V" : return "data not valid"
+        }
+    };
+
+    this.parse = function (tokens) {
+        var i;
+        if (tokens.length < 5) {
+            throw new Error('RPM : not enough tokens');
+        }
+
+        // trim whitespace
+        // some parsers may not want the tokens trimmed so the individual parser has to do it if applicable
+        for (i = 0; i < tokens.length; ++i) {
+            tokens[i] = tokens[i].trim();
+        }
+
+        console.log(tokens);
+
+        return {
+            id: tokens[0].substr(1),
+            talker_type_id: this.talker_type_id,
+            talker_type_desc: this.talker_type_desc,
+            source: this._source(tokens[1]),
+            source_number: Helper.parseIntX(tokens[2]),
+            revolutions: Helper.parseFloatX(tokens[3]),
+            propeller_pitch: (tokens[4] != "-") ? Helper.parseFloatX(tokens[4]) : null,
+            status: this._status(tokens[5])
+        }
+    };
+};
+},{"../Helper.js":2}],13:[function(require,module,exports){
 
 var Helper = require("../Helper.js");
 
@@ -1095,7 +1160,7 @@ exports.Decoder = function (id) {
     };
 };
 
-},{"../Helper.js":2}],13:[function(require,module,exports){
+},{"../Helper.js":2}],14:[function(require,module,exports){
 var Helper = require("../Helper.js");
 
 exports.Decoder = function(id) {
