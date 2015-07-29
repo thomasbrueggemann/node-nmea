@@ -1,7 +1,4 @@
-
-[![Build Status](https://api.travis-ci.org/nherment/node-nmea.png?branch=master)](https://travis-ci.org/nherment/node-nmea)
-
-nmea-0183
+node-nmea [![Build Status](https://travis-ci.org/thomasbrueggemann/node-nmea.svg)](https://travis-ci.org/thomasbrueggemann/node-nmea)
 =========
 
 An extensible parser and encoder for NMEA-0183 sentences for use with node.js.
